@@ -1,70 +1,139 @@
-import React, { Component } from 'react';
-import { Container, Header, Content, Card, CardItem, Text, Body,Button,Input,Item,Icon} from 'native-base';
-import {StyleSheet}from 'react-native';
+import React, { Component } from "react";
+import { Container, View, Content, Card, CardItem, Text, Body, Button, Item, Label, Input, Icon } from "native-base";
 
- class Login extends Component {
-     constructor(props) {
+
+import {
+  StyleSheet,
+  ActivityIndicator,
+  Alert
+} from 'react-native';
+import api from '../data/api';
+
+
+class Login extends Component {
+    constructor(props){
         super(props);
-        this.state = {usuario: '', contra: ''};
+        this.state = {
+          username : '',
+          pass : ''
+        
+        }
       }
-    render() {
-    const navegar=this.props.navigation;
-    return (
-      <Container>
-        <Header />
-        <Content contentContainerStyle = {styles.Content}>
-          <Card>
-            <CardItem header>
-              <Text style={styles.TextCwnter}>Iniciar sesión</Text>
-            </CardItem>
-            <CardItem>
-              <Body bordered style={styles.Botono}>         
-              <Item>
-               <Icon type='FontAwesome' name='user'/>
-                <Input placeholder='Nombre de usuario' value= {this.state.usuario}
-                    onChangeText= {(usuario) => this.setState({usuario})}/>
-              </Item>
-              <Item last>
-              <Icon type='FontAwesome' name='lock'/>
-                <Input placeholder='Contraseña' value= {this.state.contra}
-                          onChangeText= {(contra) => this.setState({contra})} />
-              </Item>
-              </Body>
-            </CardItem>
-            <CardItem footer>
-              <Button dark style={styles.Boton}><Text> Entrar </Text></Button>
+      login = async () => {
+        let validarlog = await api.validarLog(this.state.username,this.state.pass)
+        if(validarlog.status == 1){
+          this.props.navigation.navigate('Principal');
+        }
+        else
+        {
+          Alert.alert('Usuario o contraseña invalidos ');
+    
+        }
+      }
+        userLogin = () =>{ 
+    
+          const {username} = this.state;
+          const {pass} = this.state;
+     
+      
+          fetch('http://192.168.0.16/iot/data/login.php',{ 
+            method: 'post',
+            header: {
+              'Accept': 'application/json',
+              'Content-type': 'application/json'
+            },
+            body:JSON.stringify({
+              pUsuario: username,
+              pPass: pass
               
-              <Button dark style={styles.Boton2} onPress={() => navegar.navigate('Perfil', {contra: this.state.contra, usuario: this.state.usuario})} ><Text> Iniciar Sesión </Text></Button>
-            </CardItem>
-         </Card>
-        </Content>
-      </Container>
-    );
-  }
+            })
+      
+          })
+          .then((response) => response.text())
+            .then((responseData) =>{
+             
+              Alert.alert("Bienvenido")
+              if(responseData == 1){
+                this.props.navigation.navigate('Principal');
+              }
+              else
+              {
+                Alert.alert('Usuario o contraseña invalidos ');
+          
+              }
+              
+            
+            })
+            .catch((error)=>{
+                console.error(error);
+            
+            });
+            
+        }
+        
+      
+     
+      render(){
+      const navegar = this.props.navigation;
+     
+        return (
+            <>
+     <Container>
+       
+       <Content contentContainerStyle = {styles.Content}>
+         <Card>
+           <CardItem header>
+             <Text style={styles.TextCwnter}>Iniciar sesión</Text>
+           </CardItem>
+           <CardItem>
+             <Body bordered style={styles.Botono}>         
+             <Item>
+              <Icon type='FontAwesome' name='user'/>
+               <Input placeholder='Usuario' 
+                   onChangeText= {(username) => this.setState({username})}/>
+             </Item>
+             <Item last>
+             <Icon type='FontAwesome' name='lock'/>
+               <Input placeholder='Contraseña' 
+                          onChangeText= {(pass) => this.setState({pass})} />
+             </Item>
+             </Body>
+           </CardItem>
+           <CardItem footer>
+             <Button dark style={styles.Boton} onPress={() => navegar.navigate('Registro')}><Text> Registrate </Text></Button>
+             
+             <Button dark style={styles.Boton2} onPress={this.userLogin}><Text> Iniciar Sesión </Text></Button>
+           </CardItem>
+        </Card>
+       </Content>
+     </Container>
+     </>
+   );
+ }
 }
 
 const styles=StyleSheet.create({
-  Content:{
-    flex: 1,
-    justifyContent: 'center',
+ Content:{
+   flex: 1,
+   justifyContent: 'center',
 
-  },
-  TextCwnter:{
-    textAlign:'center',
-    width:'100%',
-  },
-  Boton:{
-    marginLeft:'20%',
-    
-  },
-  Botono:{
-    paddingVertical:'35%',
-    
+ },
+ TextCwnter:{
+   textAlign:'center',
+   width:'100%',
+ },
+ Boton:{
+   marginLeft:'20%',
+   
+ },
+ Botono:{
+   paddingVertical:'35%',
+   
 
-  },
-  Boton2:{
-    marginRight:'20%',
+ },
+ Boton2:{
+   marginRight:'20%',
 
-  },
+ },
 });
 export default Login;
